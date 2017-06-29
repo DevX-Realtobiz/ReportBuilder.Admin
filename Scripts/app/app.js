@@ -153,7 +153,7 @@
                 cache: options.cache || false,
                 contentType: options.contentType || 'application/json; charset=utf-8',
                 headers: options.headers || {}
-            }).success(function (data) {
+            }).done(function (data) {
                 uiBlocker.stop();
                 isBusy(false);
                 app.utilities.checkForAuthenticationFailure(data);

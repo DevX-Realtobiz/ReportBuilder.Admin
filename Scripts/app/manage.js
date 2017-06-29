@@ -57,7 +57,7 @@
                             dataConnect: self.saveForm().DatabaseApiKey(),
                             table: e
                         })
-                    }).success(function () {
+                    }).done(function () {
                         toastr.success("Saved table " + e.DisplayName);
                     });
 
