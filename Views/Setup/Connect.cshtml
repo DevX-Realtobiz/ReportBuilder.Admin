@@ -1,0 +1,111 @@
+﻿@model ReportBuilder.Admin.Web.Models.ConnectViewModel
+@using Newtonsoft.Json
+
+@{
+    ViewBag.Title = "Connect";
+}
+
+@section scripts{
+    <script src="~/Scripts/app/connect.js"></script>
+    <script type="text/javascript">
+        
+        var options = {
+            model:  @(Html.Raw(JsonConvert.SerializeObject(Model))),
+            testSqlUrl: '@Url.Action("TestSql","Setup")',
+            testApiUrl: '@System.Configuration.ConfigurationManager.AppSettings["dotNetReport.apiUrl"]/ReportApi/ValidateKeys',
+            saveUrl: '@Url.Action("Save","Setup")',
+            continueUrl: '@Url.Action("Manage","Setup")'
+        }
+
+        var vm = new pageViewModel(options);
+        ko.applyBindings(vm);
+
+    </script>
+}
+@if (Request.IsLocal)
+{
+<h2>Setup Database and Api Connections</h2>
+<p>
+    Please provide your SQL Database connection here to load Tables Definitions quickly. Please note that this connection information is never sent to our servers.
+</p>
+using (Html.BeginForm("Connect", "Setup", FormMethod.Post, new { @class = "form-horizontal", role = "form", data_bind = "with: model" }))
+{
+    <div class="panel panel-default">
+        <div class="panel-heading">Data Source</div>
+        <div class="panel-body">
+            <div class="form-group">
+                <label class="col-md-4 control-label" for="textinput">Server</label>
+                <div class="col-md-4">
+                    <input type="text" class="form-control input-md" placeholder="Server Name" data-bind="value: ServerName" />
+                </div>
+            </div>
+
+            <div class="form-group" data-bind="validationElement: InitialCatalog">
+                <label class="col-md-4 control-label" for="textinput">Database</label>
+                <div class="col-md-4">
+                    <input type="text" class="form-control input-md" placeholder="SQL Database" data-bind="value: InitialCatalog" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">User Credentials</div>
+        <div class="panel-body">
+            <div class="form-group">
+                <label class="col-md-4 control-label" for="textinput">Username</label>
+                <div class="col-md-4">
+                    <input type="text" class="form-control input-md" placeholder="SQL Username" data-bind="value: UserName, disable: IntegratedSecurity" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-4 control-label" for="passwordinput">Password</label>
+                <div class="col-md-4">
+                    <input type="password" class="form-control input-md" placeholder="SQL Password" data-bind="value: Password, disable: IntegratedSecurity" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-4"></div>
+                <div class="checkbox col-md-4">
+                    <label>
+                        <input type="checkbox" data-bind="checked: IntegratedSecurity"> Use Integrated Security
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p>
+        Please provide your Api Keys from .Net Report Builder here.  
+    </p>
+    <div class="panel panel-default">
+        <div class="panel-heading">.Net Report Api Keys</div>
+        <div class="panel-body">
+            <div class="form-group">
+                <label class="col-md-3 col-sm-3 control-label">Your Account Api Key</label>
+                <div class="col-md-6 col-sm-6">
+                    <input class="form-control text-box single-line" data-val="true" type="text" placeholder="Your Api Key" data-bind="value: AccountApiKey">
+                </div>
+                <div class="col-md-3 col-sm-3">
+                    <span data-toggle="tooltip" data-placement="right" class="glyphicon glyphicon-question-sign helptip" title="You have to login to www.dotnetreport.com to get this Api Key"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-3 col-sm-3 control-label">Data Connection Api Key</label>
+                <div class="col-md-6 col-sm-6">
+                    <input class="form-control text-box single-line" data-val="true" type="text" placeholder="Your Api Key" data-bind="value: DatabaseApiKey">
+                </div>
+                <div class="col-md-3 col-sm-3">
+                    <span data-toggle="tooltip" data-placement="right" class="glyphicon glyphicon-question-sign helptip" title="You have to login to www.dotnetreport.com to get this Api Key"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="pull-right">
+    <button class="btn btn-primary" data-bind="click: testConnection">Test Connection</button>
+    <button class="btn btn-primary" data-bind="click: saveConnection">Save and Continue</button>
+</div>
+}

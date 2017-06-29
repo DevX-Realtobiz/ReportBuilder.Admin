@@ -1,0 +1,19 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>About .Net Report Admin Site</h2>
+
+<p>
+    This application lets you easily setup your SQL Database for use with .Net Report Builder. It connects to your Database and lists all the database Tables and Columns for you to easily select and setup.
+</p>
+<p>
+    The purpose of this setup application is to easily setup a new database. You can always login to your account online at <a href="https://dotnetreport.com">www.dotnetreport.com</a> to manage Tables, Columns and their Relations. 
+</p>
+<div class="alert alert-info">
+    Please note that currently you have to login to your Account online to manage Table Relations. 
+</div>
+<p>
+    <a href="@Url.Action("Connect","Setup")" class="btn btn-primary">Click here to Connect and  start</a>
+</p>
