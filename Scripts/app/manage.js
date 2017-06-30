@@ -7,12 +7,122 @@
     });
 
     self.Tables = new tablesViewModel(options)
+    self.Joins = ko.observableArray([]);
+    self.JoinTypes = ["INNER", "LEFT", "LEFT OUTER", "RIGHT", "RIGHT OUTER"];
 
     self.editColumn = ko.observable();
 
     self.selectColumn = function (e) {
         self.editColumn(e);
     }
+
+    self.setupJoin = function (item) {
+        item.JoinTable = ko.observable();
+        item.OtherTable = ko.observable();
+        item.originalField = item.FieldName;
+        item.originalJoinField = item.JoinFieldName;
+
+        item = ko.mapping.fromJS(item);
+
+        item.OtherTables = ko.computed(function () {
+            return $.map(self.Tables.model(), function (subitem) {
+
+                return ((item.JoinTable() != null && subitem.Id() == item.JoinTable().Id()) || subitem.Id() <= 0) ? null : subitem;
+                
+            });
+        });
+
+        item.OtherTable.subscribe(function (subitem) {
+            //subitem.loadFields().done(function () {
+                item.FieldName(item.originalField());
+                item.JoinFieldName(item.originalJoinField());
+            //}); // Make sure fields are loaded
+        })
+
+        item.JoinTable.subscribe(function (subitem) {
+            //subitem.loadFields().done(function () {
+                item.FieldName(item.originalField());
+                item.JoinFieldName(item.originalJoinField());
+            //}); // Make sure fields are loaded
+        })
+
+        item.DeleteJoin = function () {
+            bootbox.confirm("Are you sure you would like to delete this Join?", function (r) {
+                if (r) {
+                    self.Joins.remove(item);
+                }
+            });
+        };
+
+        return item;
+    };
+
+    self.LoadJoins = function () {
+        // Load and setup Relations
+
+        app.services.call({
+            url: options.getRelationsUrl,
+            type: 'POST',
+            data: JSON.stringify({
+                account: self.saveForm().AccountApiKey(),
+                dataConnect: self.saveForm().DatabaseApiKey()
+            })
+        }).done(function (result) {
+            self.Joins($.map(result, function (item) {
+
+                return self.setupJoin(item);
+            }));
+
+            setTimeout(function () {
+                // Reset values to inital ones after loading dropdown, as it's setting them to first value
+                $.each(self.Joins(), function (idx, item) {
+                    item.JoinTable($.grep(self.Tables(), function (x) { return x.Id() == result[idx].TableId; })[0]);
+                    item.OtherTable($.grep(item.OtherTables(), function (x) { return x.Id() == result[idx].JoinedTableId; })[0]);
+                    item.FieldName(result[idx].FieldName);
+                    item.JoinFieldName(result[idx].JoinFieldName);
+                    item.JoinType(result[idx].JoinType);
+                });
+            }, 500);
+        });
+        
+    };
+
+    self.AddJoin = function () {
+        self.Joins.push(self.setupJoin({
+            TableId : 0,
+            JoinedTableId: 0,
+            JoinType: "INNER",
+            FieldName: "",
+            JoinFieldName: ""
+        }));
+    };
+
+    self.SaveJoins = function () {
+
+        $("#form-joins").validate().showErrors();
+
+        if (!$("#form-joins").valid()) {
+            return false;
+        }
+
+        $.each(self.Joins(), function () {            
+            this.TableId(this.JoinTable().Id());
+            this.JoinedTableId(this.OtherTable().Id());
+        });
+
+        app.services.call({
+            url: options.saveRelationsUrl,
+            type: 'POST',
+            data: JSON.stringify({
+                account: self.saveForm().AccountApiKey(),
+                dataConnect: self.saveForm().DatabaseApiKey(),
+                relations: ko.mapping.toJS(self.Joins)
+            })
+        }).done(function (result) {
+            if (result == "Success") toastr.success("Changes saved successfully.");
+        });
+    };
+
 
     self.saveChanges = function () {
         if (!self.saveForm.isValid()) {
@@ -72,6 +182,13 @@ var tablesViewModel = function (options) {
     self.model = ko.mapping.fromJS(options.model.Tables);
 
     $.each(self.model(), function (i, t) {
+
+        t.availableColumns = ko.computed(function () {
+            return $.grep(t.Columns(), function (e) {
+                return e.Id() > 0 && e.Selected();
+            });
+        });
+
         $.each(t.Columns(), function (i, e) {
             var tableMatch = $.grep(self.model(), function (x) { return x.TableName() == e.ForeignTable(); });
             e.JoinTable = ko.observable(tableMatch!=null && tableMatch.length>0? tableMatch[0]: null);
@@ -79,7 +196,14 @@ var tablesViewModel = function (options) {
                 e.ForeignTable(newValue.TableName());
             });
         });
+        
     });
+
+    self.availableTables = ko.computed(function () {
+        return $.grep(self.model(), function (e) {
+            return e.Id() > 0 && e.Selected();
+        });
+    })
 
     self.tableFilter = ko.observable();
 

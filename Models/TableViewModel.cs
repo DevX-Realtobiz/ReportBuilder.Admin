@@ -17,4 +17,14 @@ namespace ReportBuilder.Admin.Web.Models
 
         public List<ColumnViewModel> Columns { get; set; }
     }
+
+    public class RelationModel
+    {
+        public int Id { get; set; }        
+        public int TableId { get; set; }
+        public int JoinedTableId { get; set; }
+        public string JoinType { get; set; }
+        public string FieldName { get; set; }
+        public string JoinFieldName { get; set; }
+    }
 }
